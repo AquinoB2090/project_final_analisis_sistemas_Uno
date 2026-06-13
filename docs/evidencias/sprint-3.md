@@ -31,7 +31,7 @@ Se decide guardar los diagramas en `docs/uml/` como archivos `.puml`, porque Pla
 
 ## Diagramas creados
 
-- `docs/uml/casos-uso-citas.puml`: representa las operaciones disponibles para el usuario autenticado sobre citas medicas.
+- `docs/uml/casos-uso-citas.puml`: representa las operaciones disponibles para el usuario del sistema sobre citas medicas.
 - `docs/uml/clases-citas.puml`: representa controlador, modelo, tenant, usuario, middleware y tabla principal.
 - `docs/uml/secuencia-crear-actualizar-cita.puml`: representa el flujo real para crear o actualizar una cita medica.
 
@@ -51,13 +51,18 @@ Archivos revisados:
 
 Correspondencia encontrada:
 
-- Las rutas CRUD reales estan publicadas como recurso API `citas-medicas` bajo middleware `tenant` y `jwt.auth`.
+- Las rutas CRUD reales estan publicadas como recurso API `citas-medicas` bajo middleware `tenant`.
 - El controlador real incluye acciones `index`, `store`, `show`, `update` y `destroy`.
 - La creacion usa `CitaMedica::query()->create()` con los campos validados y el `tenant_id` tomado del request.
 - La actualizacion valida pertenencia al tenant antes de ejecutar `update()` y devuelve el modelo refrescado.
 - La tabla real `citas_medicas` contiene `tenant_id`, `fecha`, `paciente`, `responsable`, `estado` y timestamps.
 - Los estados permitidos coinciden con la constante `CitaMedica::ESTADOS`: `pendiente`, `confirmada`, `cancelada` y `atendida`.
 - Las pruebas feature cubren crear, listar, ver, actualizar, eliminar, validaciones y bloqueo de acceso entre tenants.
+
+Nota de ajuste posterior:
+
+- Los diagramas UML fueron revisados despues de habilitar la vista demo sin login.
+- El flujo actual de citas usa tenant por cabecera `X-Tenant-ID`; el middleware JWT queda asociado a rutas de autenticacion, no al CRUD demo de citas.
 
 ## Verificacion aplicada
 

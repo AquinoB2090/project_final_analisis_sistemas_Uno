@@ -2,9 +2,8 @@
 title Modulo de citas medicas - Casos de uso
 left to right direction
 
-actor "Usuario autenticado" as Usuario
+actor "Usuario del sistema" as Usuario
 actor "Middleware tenant" as TenantMiddleware
-actor "Middleware JWT" as JwtMiddleware
 
 rectangle "API de citas medicas" {
   usecase "Listar citas medicas" as UCListar
@@ -23,11 +22,6 @@ Usuario --> UCActualizar
 Usuario --> UCEliminar
 
 TenantMiddleware --> UCTenant
-JwtMiddleware --> UCListar
-JwtMiddleware --> UCCrear
-JwtMiddleware --> UCDetalle
-JwtMiddleware --> UCActualizar
-JwtMiddleware --> UCEliminar
 
 UCCrear .> UCValidar : <<include>>
 UCActualizar .> UCValidar : <<include>>

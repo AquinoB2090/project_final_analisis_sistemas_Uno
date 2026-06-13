@@ -27,10 +27,6 @@ Crear una evidencia verificable del Sprint 1 donde se registre el analisis de ar
 
 Se reviso la documentacion principal del proyecto y los archivos de dependencias para identificar la arquitectura base. El proyecto ya incluye una estructura Laravel + Vue orientada a API REST y SPA, con autenticacion JWT, autorizacion por roles/permisos y soporte base de tenant por cabecera.
 
-## Decision humana tomada
-
-Se decide que el Sprint 1 sera solamente de analisis y base estructural. La implementacion del CRUD de citas medicas se dejara para el Sprint 2, con el fin de mantener evidencia progresiva y evitar que la entrega parezca realizada en una sola ejecucion.
-
 ## Analisis de arquitectura actual
 
 El proyecto usa una arquitectura SPA + API REST:

@@ -59,10 +59,15 @@ class "citas_medicas" as CitasMedicasTable <<table>> {
 CitaMedicaController ..> CitaMedica : consulta y persiste
 CitaMedicaController ..> Tenant : obtiene desde Request
 TenantMiddleware ..> Tenant : busca por X-Tenant-ID
-EnsureJwtTokenIsValid ..> User : autentica JWT
+EnsureJwtTokenIsValid ..> User : autentica JWT en rutas auth
 CitaMedica "*" --> "1" Tenant : tenant_id
 User "*" --> "1" Tenant : tenant_id
 CitaMedica .. CitasMedicasTable : mapea
+
+note right of CitaMedicaController
+El CRUD de citas usa middleware tenant.
+La vista demo lo consume sin login.
+end note
 
 note right of CitaMedica
 Estados reales en codigo:

@@ -12,7 +12,9 @@ Route::middleware('tenant')->group(function (): void {
 Route::middleware(['tenant', 'jwt.auth'])->group(function (): void {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+});
 
+Route::middleware('tenant')->group(function (): void {
     Route::apiResource('citas-medicas', CitaMedicaController::class)
         ->parameters(['citas-medicas' => 'cita_medica']);
 });

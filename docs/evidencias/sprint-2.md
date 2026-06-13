@@ -58,10 +58,16 @@ Estados permitidos:
 
 ## Endpoints implementados
 
-Todos los endpoints requieren:
+En la implementacion inicial del Sprint 2 todos los endpoints requerian:
 
 - Header `X-Tenant-ID`.
 - Header `Authorization: Bearer {token}`.
+
+Nota de ajuste posterior:
+
+- Para facilitar la demostracion desde `http://localhost:8000/`, el CRUD de citas medicas quedo consumible sin login.
+- Las rutas de citas mantienen la cabecera `X-Tenant-ID` para resolver el tenant.
+- Las rutas de autenticacion JWT siguen disponibles para el resto del sistema.
 
 ```text
 GET    /api/v1/citas-medicas

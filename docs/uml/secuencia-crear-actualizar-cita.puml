@@ -2,10 +2,9 @@
 title Modulo de citas medicas - Secuencia crear o actualizar cita
 autonumber
 
-actor "Usuario autenticado" as Usuario
+actor "Usuario del sistema" as Usuario
 participant "API Router\nroutes/api.php" as Router
 participant "TenantMiddleware" as TenantMiddleware
-participant "EnsureJwtTokenIsValid" as JwtMiddleware
 participant "CitaMedicaController" as Controller
 participant "CitaMedica\nModelo Eloquent" as CitaMedica
 database "BD\ncitas_medicas" as DB
@@ -15,10 +14,7 @@ Router -> TenantMiddleware : aplica middleware tenant
 TenantMiddleware -> DB : busca tenant por X-Tenant-ID
 DB --> TenantMiddleware : tenant encontrado
 TenantMiddleware -> Router : agrega tenant al Request
-Router -> JwtMiddleware : aplica middleware jwt.auth
-JwtMiddleware -> JwtMiddleware : parsea y autentica Bearer token
-JwtMiddleware -> JwtMiddleware : compara tenant del usuario con X-Tenant-ID
-JwtMiddleware -> Controller : envia Request validado por middleware
+Router -> Controller : envia Request con tenant resuelto
 
 alt Crear cita
   Controller -> Controller : tenant(Request)
@@ -48,8 +44,8 @@ alt Validacion falla
   Controller --> Usuario : 422 JSON errores de validacion
 else Cita no pertenece al tenant
   Controller --> Usuario : 404 JSON
-else Token invalido o tenant no coincide
-  JwtMiddleware --> Usuario : 401 o 403 JSON
+else Tenant no existe o falta cabecera
+  TenantMiddleware --> Usuario : 400 o 404 JSON
 end
 
 @enduml

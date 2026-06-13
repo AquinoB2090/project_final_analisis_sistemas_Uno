@@ -6,10 +6,7 @@
             </div>
             <nav class="layout__nav">
                 <router-link class="layout__link" to="/">
-                    Inicio
-                </router-link>
-                <router-link class="layout__link" to="/login">
-                    Acceso
+                    Citas
                 </router-link>
             </nav>
         </header>
