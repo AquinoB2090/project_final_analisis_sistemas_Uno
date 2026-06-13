@@ -30,7 +30,7 @@ La aplicación sigue un modelo **SPA + API REST**: el navegador carga una única
 | **Autenticación API** | `tymon/jwt-auth` | Emite y valida tokens JWT en el guard `api`; no usa sesiones para el API. |
 | **Autorización (RBAC)** | `spatie/laravel-permission` | Roles y permisos sobre el modelo `User` (guard `api`). |
 | **Multitenancy base** | `stancl/tenancy` + tabla `tenants` | Modelo `Tenant` y columna `tenant_id` en usuarios. El tenant activo se **indica en cada petición** con `X-Tenant-ID` (sin bases de datos separadas en esta fase). |
-| **Middleware propio** | `TenantMiddleware`, `JwtAuth` | `TenantMiddleware` resuelve y valida el tenant por cabecera; `JwtAuth` protege rutas con JWT y coherencia tenant–token. |
+| **Middleware propio** | `TenantMiddleware`, `EnsureJwtTokenIsValid` | `TenantMiddleware` resuelve y valida el tenant por cabecera; `EnsureJwtTokenIsValid` protege rutas con JWT y coherencia tenant–token. |
 | **Frontend** | Vue 3 + Vue Router + Pinia | SPA: rutas del lado cliente, estado global (p. ej. sesión / token) y pantallas como login. |
 | **Build frontend** | Vite 7 + `@vitejs/plugin-vue` | Empaqueta JS/CSS; alias `@` apunta a `resources/js`. |
 | **Cliente HTTP** | Axios (`resources/js/plugins/axios.js`) | Llama al API con `Authorization: Bearer` y `X-Tenant-ID` según lo guardado en `localStorage`. |
@@ -49,7 +49,7 @@ La aplicación sigue un modelo **SPA + API REST**: el navegador carga una única
 ```
 app/Http/Controllers/Api/V1/AuthController.php   # registro, login, me, refresh, logout
 app/Http/Middleware/TenantMiddleware.php         # cabecera X-Tenant-ID
-app/Http/Middleware/JwtAuth.php                  # JWT + coherencia tenant
+app/Http/Middleware/EnsureJwtTokenIsValid.php    # JWT + coherencia tenant
 app/Models/User.php                              # JWT + HasRoles + tenant_id
 app/Models/Tenant.php                            # modelo Stancl / tabla tenants
 resources/js/                                    # Vue: router, stores, páginas, Axios
