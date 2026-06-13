@@ -1,0 +1,73 @@
+@startuml
+title Modulo de citas medicas - Diagrama de clases
+skinparam classAttributeIconSize 0
+
+class "CitaMedicaController" as CitaMedicaController {
+  +index(Request): JsonResponse
+  +store(Request): JsonResponse
+  +show(Request, CitaMedica): JsonResponse
+  +update(Request, CitaMedica): JsonResponse
+  +destroy(Request, CitaMedica): JsonResponse
+  -validateCita(Request): array
+  -abortIfCitaDoesNotBelongToTenant(Request, CitaMedica): void
+  -tenant(Request): Tenant
+}
+
+class "CitaMedica" as CitaMedica {
+  +ESTADOS: array
+  #table: string = "citas_medicas"
+  #fillable: array
+  #casts(): array
+  +tenant(): BelongsTo
+}
+
+class "Tenant" as Tenant {
+  #fillable: array
+  +getCustomColumns(): array
+  #casts(): array
+}
+
+class "User" as User {
+  #guard_name: string = "api"
+  #fillable: array
+  #hidden: array
+  #casts(): array
+  +tenant(): BelongsTo
+  +getJWTIdentifier(): mixed
+  +getJWTCustomClaims(): array
+}
+
+class "TenantMiddleware" as TenantMiddleware {
+  +handle(Request, Closure): Response
+}
+
+class "EnsureJwtTokenIsValid" as EnsureJwtTokenIsValid {
+  +handle(Request, Closure): Response
+}
+
+class "citas_medicas" as CitasMedicasTable <<table>> {
+  id: bigint
+  tenant_id: string
+  fecha: datetime
+  paciente: string
+  responsable: string
+  estado: string
+  created_at: timestamp
+  updated_at: timestamp
+}
+
+CitaMedicaController ..> CitaMedica : consulta y persiste
+CitaMedicaController ..> Tenant : obtiene desde Request
+TenantMiddleware ..> Tenant : busca por X-Tenant-ID
+EnsureJwtTokenIsValid ..> User : autentica JWT
+CitaMedica "*" --> "1" Tenant : tenant_id
+User "*" --> "1" Tenant : tenant_id
+CitaMedica .. CitasMedicasTable : mapea
+
+note right of CitaMedica
+Estados reales en codigo:
+pendiente, confirmada,
+cancelada, atendida
+end note
+
+@enduml

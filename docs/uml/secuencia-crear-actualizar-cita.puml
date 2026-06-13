@@ -1,0 +1,55 @@
+@startuml
+title Modulo de citas medicas - Secuencia crear o actualizar cita
+autonumber
+
+actor "Usuario autenticado" as Usuario
+participant "API Router\nroutes/api.php" as Router
+participant "TenantMiddleware" as TenantMiddleware
+participant "EnsureJwtTokenIsValid" as JwtMiddleware
+participant "CitaMedicaController" as Controller
+participant "CitaMedica\nModelo Eloquent" as CitaMedica
+database "BD\ncitas_medicas" as DB
+
+Usuario -> Router : POST /api/v1/citas-medicas\no PUT/PATCH /api/v1/citas-medicas/{id}
+Router -> TenantMiddleware : aplica middleware tenant
+TenantMiddleware -> DB : busca tenant por X-Tenant-ID
+DB --> TenantMiddleware : tenant encontrado
+TenantMiddleware -> Router : agrega tenant al Request
+Router -> JwtMiddleware : aplica middleware jwt.auth
+JwtMiddleware -> JwtMiddleware : parsea y autentica Bearer token
+JwtMiddleware -> JwtMiddleware : compara tenant del usuario con X-Tenant-ID
+JwtMiddleware -> Controller : envia Request validado por middleware
+
+alt Crear cita
+  Controller -> Controller : tenant(Request)
+  Controller -> Controller : validateCita(Request)
+  Controller -> CitaMedica : create(validated + tenant_id)
+  CitaMedica -> DB : INSERT citas_medicas
+  DB --> CitaMedica : cita creada
+  CitaMedica --> Controller : CitaMedica
+  Controller --> Usuario : 201 JSON { message, data }
+else Actualizar cita
+  Router -> CitaMedica : route model binding {cita_medica}
+  CitaMedica -> DB : SELECT por id
+  DB --> CitaMedica : cita encontrada
+  CitaMedica --> Controller : CitaMedica
+  Controller -> Controller : abortIfCitaDoesNotBelongToTenant()
+  Controller -> Controller : validateCita(Request)
+  Controller -> CitaMedica : update(validated)
+  CitaMedica -> DB : UPDATE citas_medicas
+  DB --> CitaMedica : cambios guardados
+  Controller -> CitaMedica : refresh()
+  CitaMedica -> DB : SELECT actualizado
+  DB --> CitaMedica : cita actualizada
+  Controller --> Usuario : 200 JSON { message, data }
+end
+
+alt Validacion falla
+  Controller --> Usuario : 422 JSON errores de validacion
+else Cita no pertenece al tenant
+  Controller --> Usuario : 404 JSON
+else Token invalido o tenant no coincide
+  JwtMiddleware --> Usuario : 401 o 403 JSON
+end
+
+@enduml

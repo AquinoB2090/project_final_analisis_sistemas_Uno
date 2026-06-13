@@ -1,0 +1,50 @@
+@startuml
+title Modulo de citas medicas - Casos de uso
+left to right direction
+
+actor "Usuario autenticado" as Usuario
+actor "Middleware tenant" as TenantMiddleware
+actor "Middleware JWT" as JwtMiddleware
+
+rectangle "API de citas medicas" {
+  usecase "Listar citas medicas" as UCListar
+  usecase "Crear cita medica" as UCCrear
+  usecase "Ver detalle de cita" as UCDetalle
+  usecase "Actualizar cita medica" as UCActualizar
+  usecase "Eliminar cita medica" as UCEliminar
+  usecase "Validar campos de cita" as UCValidar
+  usecase "Verificar pertenencia al tenant" as UCTenant
+}
+
+Usuario --> UCListar
+Usuario --> UCCrear
+Usuario --> UCDetalle
+Usuario --> UCActualizar
+Usuario --> UCEliminar
+
+TenantMiddleware --> UCTenant
+JwtMiddleware --> UCListar
+JwtMiddleware --> UCCrear
+JwtMiddleware --> UCDetalle
+JwtMiddleware --> UCActualizar
+JwtMiddleware --> UCEliminar
+
+UCCrear .> UCValidar : <<include>>
+UCActualizar .> UCValidar : <<include>>
+UCDetalle .> UCTenant : <<include>>
+UCActualizar .> UCTenant : <<include>>
+UCEliminar .> UCTenant : <<include>>
+UCListar .> UCTenant : filtra por tenant_id
+
+note right of UCValidar
+Campos requeridos:
+- fecha
+- paciente
+- responsable
+- estado
+Estados permitidos:
+pendiente, confirmada,
+cancelada, atendida
+end note
+
+@enduml
