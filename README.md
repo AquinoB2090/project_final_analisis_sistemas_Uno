@@ -4,6 +4,20 @@ Proyecto **Laravel 12 + Vue 3 (Vite)** con **JWT**, **Spatie Laravel Permission*
 
 ---
 
+## Evidencia y trazabilidad
+
+La guia para documentar los avances por sprint esta en [`docs/evidencias/guia-trazabilidad.md`](docs/evidencias/guia-trazabilidad.md).
+
+El proyecto debe registrar evidencia separada para:
+
+- **Sprint 1:** analisis de arquitectura, framework, stack y base estructural del modulo.
+- **Sprint 2:** implementacion del CRUD basico de citas medicas con fecha, paciente, responsable y estado.
+- **Sprint 3:** diagramas UML base global del modulo solicitado.
+
+Cada sprint debe incluir prompt usado, objetivo del prompt, resumen de respuesta recibida, decision humana tomada, cambios realizados, verificacion aplicada y commit asociado.
+
+---
+
 ## Arquitectura construida
 
 La aplicación sigue un modelo **SPA + API REST**: el navegador carga una única vista Blade que monta Vue; el backend expone JSON bajo `/api/v1`.
