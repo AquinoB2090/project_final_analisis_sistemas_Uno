@@ -1,150 +1,108 @@
-# Proyecto base — Evaluación Final Análisis de Sistemas I
+# Resumen del modulo de citas medicas
 
-Proyecto **Laravel 12 + Vue 3 (Vite)** con **JWT**, **Spatie Laravel Permission** y **Stancl Tenancy** (tenant identificado por cabecera `X-Tenant-ID`). Esta base se entrega para que el estudiante analice la estructura existente y desarrolle el módulo asignado por el docente.
+Este documento resume el trabajo realizado en el proyecto final para el modulo de citas medicas.
 
----
+## Que se hizo
 
-## Evidencia y trazabilidad
+Se analizo la base del proyecto Laravel 12 + Vue 3 y se implemento un modulo CRUD para administrar citas medicas. El modulo permite crear, listar, consultar, actualizar y eliminar citas con los campos minimos solicitados:
 
-La guia para documentar los avances por sprint esta en [`docs/evidencias/guia-trazabilidad.md`](docs/evidencias/guia-trazabilidad.md).
+- `fecha`
+- `paciente`
+- `responsable`
+- `estado`
 
-El proyecto debe registrar evidencia separada para:
+Los estados permitidos son:
 
-- **Sprint 1:** analisis de arquitectura, framework, stack y base estructural del modulo.
-- **Sprint 2:** implementacion del CRUD basico de citas medicas con fecha, paciente, responsable y estado.
-- **Sprint 3:** diagramas UML base global del modulo solicitado.
+- `pendiente`
+- `confirmada`
+- `cancelada`
+- `atendida`
 
-Cada sprint debe incluir prompt usado, objetivo del prompt, resumen de respuesta recibida, decision humana tomada, cambios realizados, verificacion aplicada y commit asociado.
+## Pantalla principal
 
----
+La vista minima del CRUD esta disponible en:
 
-## Arquitectura construida
-
-La aplicación sigue un modelo **SPA + API REST**: el navegador carga una única vista Blade que monta Vue; el backend expone JSON bajo `/api/v1`.
-
-### Vista general
-
-| Capa | Tecnología | Para qué sirve |
-|------|------------|----------------|
-| **Backend / API** | Laravel 12 | Punto único de negocio, persistencia, seguridad y contratos HTTP JSON. |
-| **Autenticación API** | `tymon/jwt-auth` | Emite y valida tokens JWT en el guard `api`; no usa sesiones para el API. |
-| **Autorización (RBAC)** | `spatie/laravel-permission` | Roles y permisos sobre el modelo `User` (guard `api`). |
-| **Multitenancy base** | `stancl/tenancy` + tabla `tenants` | Modelo `Tenant` y columna `tenant_id` en usuarios. El tenant activo se **indica en cada petición** con `X-Tenant-ID` (sin bases de datos separadas en esta fase). |
-| **Middleware propio** | `TenantMiddleware`, `EnsureJwtTokenIsValid` | `TenantMiddleware` resuelve y valida el tenant por cabecera; `EnsureJwtTokenIsValid` protege rutas con JWT y coherencia tenant–token. |
-| **Frontend** | Vue 3 + Vue Router + Pinia | SPA: rutas del lado cliente, estado global (p. ej. sesión / token) y pantallas como login. |
-| **Build frontend** | Vite 7 + `@vitejs/plugin-vue` | Empaqueta JS/CSS; alias `@` apunta a `resources/js`. |
-| **Cliente HTTP** | Axios (`resources/js/plugins/axios.js`) | Llama al API con `Authorization: Bearer` y `X-Tenant-ID` según lo guardado en `localStorage`. |
-| **Vista shell** | `resources/views/app.blade.php` | Inyecta el bundle Vite y el `<div id="app">` donde Vue se monta. |
-| **Rutas web** | `routes/web.php` | Cualquier ruta devuelve la misma SPA (fallback) para que Vue Router maneje `/`, `/login`, etc. |
-
-### Flujo típico de una petición
-
-1. El usuario (o el formulario de login) fija el **ID del tenant**; Axios envía `X-Tenant-ID` y, si hay sesión, el **JWT** en `Authorization`.
-2. Laravel aplica `TenantMiddleware` donde corresponda: si el tenant no existe, responde 404 JSON.
-3. En rutas protegidas, `jwt.auth` valida el token; opcionalmente se compara el tenant del header con el del usuario del token.
-4. Las respuestas del API son siempre **JSON**.
-
-### Estructura relevante en el repo
-
-```
-app/Http/Controllers/Api/V1/AuthController.php   # registro, login, me, refresh, logout
-app/Http/Middleware/TenantMiddleware.php         # cabecera X-Tenant-ID
-app/Http/Middleware/EnsureJwtTokenIsValid.php    # JWT + coherencia tenant
-app/Models/User.php                              # JWT + HasRoles + tenant_id
-app/Models/Tenant.php                            # modelo Stancl / tabla tenants
-resources/js/                                    # Vue: router, stores, páginas, Axios
-routes/api.php                                   # rutas bajo prefijo api/v1 (ver bootstrap/app.php)
+```text
+http://localhost:8000/
 ```
 
----
+La pantalla permite usar el CRUD directamente, sin iniciar sesion. Para mantener la separacion por tenant, la vista usa automaticamente el tenant demo:
 
-## Qué se necesita para correr el proyecto
+```text
+00000000-0000-4000-8000-000000000001
+```
 
-### Software instalado en tu máquina
+## API del modulo
 
-| Requisito | Uso |
-|-----------|-----|
-| **PHP ≥ 8.2** | Ejecutar Laravel y Composer scripts (`artisan`, migraciones). |
-| **Composer ≥ 2.x** | Instalar dependencias PHP (`vendor/`). |
-| **Node.js ≥ 20** y **npm** | Instalar dependencias JS y ejecutar Vite (`npm run dev` / `npm run build`). |
-| **Extensiones PHP habituales** | `openssl`, `pdo`, `mbstring`, `tokenizer`, `xml`, `ctype`, `json`, `bcmath` (según tu stack). |
-| **Base de datos** | **SQLite** (rápido en desarrollo, archivo `database/database.sqlite`) o **MySQL 8** en entornos más cercanos a producción. |
+Las rutas principales del CRUD son:
 
-### Variables de entorno imprescindibles
+```text
+GET    /api/v1/citas-medicas
+POST   /api/v1/citas-medicas
+GET    /api/v1/citas-medicas/{cita_medica}
+PUT    /api/v1/citas-medicas/{cita_medica}
+PATCH  /api/v1/citas-medicas/{cita_medica}
+DELETE /api/v1/citas-medicas/{cita_medica}
+```
 
-Tras copiar `.env.example` a `.env`:
+Las rutas requieren la cabecera:
 
-- **`APP_KEY`** — `php artisan key:generate`
-- **`JWT_SECRET`** — `php artisan jwt:secret`
-- **Conexión a BD** — según elijas SQLite o MySQL en `.env`
-- **`VITE_API_URL`** — URL base del API que usará el frontend en desarrollo (p. ej. `http://localhost:8000/api/v1`) si el navegador sirve la SPA desde otro puerto (Vite).
+```text
+X-Tenant-ID: 00000000-0000-4000-8000-000000000001
+```
 
-Sin PHP/Composer/Node o sin BD configurada, el proyecto no podrá migrar ni compilar el frontend.
+## Archivos principales
 
----
+- `app/Models/CitaMedica.php`
+- `app/Http/Controllers/Api/V1/CitaMedicaController.php`
+- `database/migrations/2026_06_13_000001_create_citas_medicas_table.php`
+- `database/factories/CitaMedicaFactory.php`
+- `routes/api.php`
+- `resources/js/pages/HomePage.vue`
+- `tests/Feature/CitaMedicaApiTest.php`
 
-## Instalación y ejecución
+## Evidencia por sprint
 
-```bash
+- Sprint 1: `docs/evidencias/sprint-1.md`
+- Sprint 2: `docs/evidencias/sprint-2.md`
+- Sprint 3: `docs/evidencias/sprint-3.md`
+- Guia de trazabilidad: `docs/evidencias/guia-trazabilidad.md`
+
+## Diagramas UML
+
+Los diagramas estan en formato PlantUML:
+
+- `docs/uml/casos-uso-citas.puml`
+- `docs/uml/clases-citas.puml`
+- `docs/uml/secuencia-crear-actualizar-cita.puml`
+
+## Verificacion aplicada
+
+Durante el desarrollo se verifico:
+
+- Creacion del archivo SQLite local.
+- Ejecucion de migraciones.
+- Ejecucion de seeders para tenant y usuario demo.
+- Compilacion del frontend con `npm run build`.
+- Pruebas del modulo con `php artisan test --filter=CitaMedicaApiTest`.
+- Revision de rutas con `php artisan route:list --path=api/v1/citas-medicas`.
+- Prueba manual del API sin token usando `X-Tenant-ID`.
+
+## Como correrlo localmente
+
+```text
 composer install
-cp .env.example .env
+npm install
 php artisan key:generate
 php artisan jwt:secret
-```
-
-Configura la base de datos en `.env` (SQLite o MySQL). Luego:
-
-```bash
-php artisan migrate
-npm install
-npm run dev
-```
-
-En **otra terminal**, el servidor HTTP de Laravel:
-
-```bash
+New-Item -ItemType File -Path database\database.sqlite -Force
+php artisan migrate --seed
+npm run build
 php artisan serve
 ```
 
-Abre el frontend según la URL que muestre Vite (típicamente `http://localhost:5173`) y asegúrate de que `VITE_API_URL` apunte al backend (`php artisan serve` suele ser `http://127.0.0.1:8000`).
+Luego abrir:
 
-### Variables `.env` más usadas
-
-| Variable | Descripción |
-|----------|-------------|
-| `APP_URL` | URL pública del backend (p. ej. `http://localhost:8000`). |
-| `FRONTEND_URL` | URL del frontend en desarrollo (referencia / CORS si aplica). |
-| `JWT_SECRET` | Secreto de firma JWT (generado con `jwt:secret`). |
-| `JWT_TTL` | Minutos de vida del access token (por defecto 60). |
-| `VITE_API_URL` | Base URL del API para Axios desde Vite. |
-
-## API (`/api/v1`)
-
-Todas las rutas del API requieren la cabecera **`X-Tenant-ID`** (UUID del tenant).
-
-| Método | Ruta | Auth |
-|--------|------|------|
-| POST | `/auth/register` | No (devuelve JWT al registrar) |
-| POST | `/auth/login` | No |
-| GET | `/auth/me` | Bearer JWT |
-| POST | `/auth/refresh` | Middleware `jwt.refresh` (renovación con ventana de refresh) |
-| POST | `/auth/logout` | Bearer JWT |
-
-Respuestas siempre en **JSON**.
-
----
-
-## Validación recomendada
-
-```bash
-php artisan route:list --path=api
-php artisan config:clear
-npm run build
-php artisan test
+```text
+http://localhost:8000/
 ```
-
----
-
-## Entrega esperada
-
-El estudiante debe trabajar sobre su propio fork del repositorio y entregar en Canvas el enlace al repositorio forkeado, junto con una breve descripción del módulo implementado y los commits principales que evidencian su avance.
